@@ -122,8 +122,33 @@ interface SoundPlayerProps {
 export function SoundPlayer({ sounds }: SoundPlayerProps) {
   const audioRefs = useRef<Map<string, HTMLAudioElement>>(new Map());
   const [playingState, setPlayingState] = useState<Map<string, boolean>>(new Map());
+  const [userInteracted, setUserInteracted] = useState(false);
+  // @ts-ignore
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
 
-  useEffect(() => {
+  // Initialize audio context on user interaction
+  const handleUserInteraction = async () => {
+    if (!userInteracted) {
+      try {
+        // Create and resume audio context
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        setAudioContext(ctx);
+        setUserInteracted(true);
+        
+        // Try to play current sounds
+        playSounds();
+      } catch (error) {
+        console.error('Failed to initialize audio:', error);
+      }
+    }
+  };
+
+  const playSounds = async () => {
+    if (!userInteracted) return;
+
     const currentAudios = audioRefs.current;
     const newPlayingState = new Map<string, boolean>();
 
@@ -134,26 +159,26 @@ export function SoundPlayer({ sounds }: SoundPlayerProps) {
     });
 
     // Start new sounds
-    sounds.forEach((sound) => {
+    for (const sound of sounds) {
       let audio = currentAudios.get(sound.name);
       
       if (!audio) {
         audio = new Audio(soundNameToFile[sound.name]);
         audio.loop = true;
+        audio.preload = 'auto';
         currentAudios.set(sound.name, audio);
       }
 
       audio.volume = sound.volume;
       
-      audio.play().then(() => {
+      try {
+        await audio.play();
         newPlayingState.set(sound.name, true);
-        setPlayingState(new Map(newPlayingState));
-      }).catch((error) => {
+      } catch (error) {
         console.error(`Failed to play ${sound.name}:`, error);
         newPlayingState.set(sound.name, false);
-        setPlayingState(new Map(newPlayingState));
-      });
-    });
+      }
+    }
 
     // Clean up sounds that are no longer needed
     const activeSoundNames = new Set(sounds.map(s => s.name));
@@ -166,19 +191,53 @@ export function SoundPlayer({ sounds }: SoundPlayerProps) {
     });
 
     setPlayingState(new Map(newPlayingState));
+  };
+
+  useEffect(() => {
+    if (userInteracted) {
+      playSounds();
+    }
 
     // Cleanup on unmount
     return () => {
+      const currentAudios = audioRefs.current;
       currentAudios.forEach((audio) => {
         audio.pause();
         audio.currentTime = 0;
       });
     };
-  }, [sounds]);
+  }, [sounds, userInteracted]);
 
   return (
     <div>
       <h2>Currently Playing</h2>
+      
+      {!userInteracted && (
+        <div style={{ 
+          padding: '10px', 
+          backgroundColor: '#000', 
+          border: '1px solid #ccc', 
+          borderRadius: '5px',
+          marginBottom: '10px'
+        }}>
+          <p>Click the button below to enable audio playback:</p>
+          <button 
+            onClick={handleUserInteraction}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            🔊 Enable Audio
+          </button>
+        </div>
+      )}
+
       {sounds.length === 0 ? (
         <p>No sounds playing</p>
       ) : (
@@ -186,10 +245,29 @@ export function SoundPlayer({ sounds }: SoundPlayerProps) {
           {sounds.map((sound) => (
             <li key={sound.name}>
               <strong>{sound.name}</strong> - Volume: {Math.round(sound.volume * 100)}%
-              {playingState.get(sound.name) ? ' ▶️' : ' ⏸️'}
+              {userInteracted ? (
+                playingState.get(sound.name) ? ' ▶️' : ' ⏸️'
+              ) : ' 🔇'}
             </li>
           ))}
         </ul>
+      )}
+      
+      {userInteracted && sounds.length > 0 && (
+        <button 
+          onClick={playSounds}
+          style={{
+            marginTop: '10px',
+            padding: '5px 10px',
+            backgroundColor: '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '3px',
+            cursor: 'pointer'
+          }}
+        >
+          🔄 Refresh Audio
+        </button>
       )}
     </div>
   );

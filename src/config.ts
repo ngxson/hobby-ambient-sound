@@ -40,7 +40,7 @@ export const CONFIG = {
       next: 'evening',
       items: [
         { name: 'birds', volume: 0.5 },
-        { name: 'river', volume: 0.5 },
+        { name: 'river', volume: 0.6 },
       ],
     },
     {
@@ -55,7 +55,7 @@ export const CONFIG = {
       next: 'morning0',
       items: [
         { name: 'night', volume: 1.0 },
-        { name: 'river', volume: 0.4 },
+        { name: 'river', volume: 0.5 },
       ],
     },
   ] satisfies SoundEvent[],

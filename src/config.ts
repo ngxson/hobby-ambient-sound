@@ -1,9 +1,9 @@
-import sndBird from './sounds/birds.mp3?url';
+import sndBirds from './sounds/birds.mp3?url';
 import sndNight from './sounds/night.mp3?url';
 import sndRiver from './sounds/river.mp3?url';
 
 export const soundNameToFile: Record<SoundName, string> = {
-  birds: sndBird,
+  birds: sndBirds,
   night: sndNight,
   river: sndRiver,
 };
@@ -40,7 +40,7 @@ export const CONFIG = {
       next: 'evening',
       items: [
         { name: 'birds', volume: 0.5 },
-        { name: 'river', volume: 0.6 },
+        { name: 'river', volume: 1.0 },
       ],
     },
     {
@@ -54,8 +54,8 @@ export const CONFIG = {
       prev: 'night',
       next: 'morning0',
       items: [
-        { name: 'night', volume: 1.0 },
-        { name: 'river', volume: 0.5 },
+        { name: 'night', volume: 0.6 },
+        { name: 'river', volume: 0.9 },
       ],
     },
   ] satisfies SoundEvent[],

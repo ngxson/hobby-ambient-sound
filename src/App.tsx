@@ -55,7 +55,7 @@ function getTimeSteps(time: number): TimeStep[] {
   const times = suncalc.getTimes(today, CONFIG.position.lat, CONFIG.position.lon);
   return [
     { type: 'morning0', time: times.sunrise.getTime() },
-    { type: 'morning1', time: times.sunrise.getTime() + 3 * 60 * 60 * 1000 }, // 3 hours after sunrise
+    { type: 'morning1', time: times.sunrise.getTime() + 4 * 60 * 60 * 1000 }, // 4 hours after sunrise
     { type: 'evening', time: times.sunset.getTime() - 30 * 60 * 1000 }, // 30 minutes before sunset
     { type: 'night', time: times.sunset.getTime() + 15 * 60 * 1000 }, // 30 minutes after sunset
   ];
